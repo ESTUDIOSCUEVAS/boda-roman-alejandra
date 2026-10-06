@@ -7,7 +7,7 @@ opening.hidden=false;invitation.hidden=true;
 $('open-invitation').addEventListener('click',()=>{
  $('open-invitation').disabled=true;opening.classList.add('is-open');
  const delay=matchMedia('(prefers-reduced-motion: reduce)').matches?0:800;
- setTimeout(()=>{opening.hidden=true;invitation.hidden=false;window.scrollTo(0,0);$('couple-title').focus({preventScroll:true});},delay);
+ setTimeout(()=>{opening.hidden=true;invitation.hidden=false;window.scrollTo(0,0);$('music-title').focus({preventScroll:true});$('floating-music').hidden=!config.song;},delay);
 },{once:true});
 $('confirmation').hidden=true;$('show-rsvp').hidden=false;
 $('show-rsvp').addEventListener('click',()=>{
@@ -21,29 +21,48 @@ const demo=!config.endpoint;
 let guest=null;
 const activities=[['05:00 PM','Llegada de los invitados','◇'],['05:30 PM','Llegada de los novios','♡'],['05:40 PM','Ceremonia','○'],['06:40 PM','Brindis y felicitaciones','◇'],['06:55 PM','Baile de los novios','♡'],['07:40 PM','Cena','◇'],['08:50 PM','Postres','○'],['09:10 PM','Fotografías','◇'],['09:40 PM','Lanzamiento de ramo y juegos','♡'],['10:30 PM','Fin del evento','○']];
 activities.forEach(([time,activity,icon])=>{const li=document.createElement('li');const t=document.createElement('time');t.textContent=time;const dot=document.createElement('span');dot.className='dot';dot.setAttribute('aria-hidden','true');dot.textContent=icon;const text=document.createElement('span');text.textContent=activity;li.append(t,dot,text);$('timeline').append(li)});
-document.querySelectorAll('[data-photo]').forEach(el=>{const src=config.photos[Number(el.dataset.photo)];if(!src)return;const img=new Image();img.onload=()=>{el.style.backgroundImage=`url(${JSON.stringify(new URL(src,location.href).href)})`;el.classList.add('has-photo')};img.src=src});
+const photoDescriptions=['Román y Alejandra abrazados en el jardín','Román y Alejandra tomados de la mano','Román y Alejandra juntos bajo el mirador','Román y Alejandra al atardecer'];
+document.querySelectorAll('[data-photo]').forEach(el=>{
+ const index=Number(el.dataset.photo), src=config.photos[index];if(!src)return;
+ const visual=document.createElement('div');visual.className='photo-visual';
+ const img=document.createElement('img');img.src=src;img.alt=photoDescriptions[index];img.decoding='async';
+ if(index===0)img.fetchPriority='high';else img.loading='lazy';
+ visual.append(img);el.prepend(visual);el.classList.add('has-photo');
+});
 $('maps').href=config.maps||'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent('Salón de eventos 7 tesoros, Veracruz y Francisco Javier Mina, Los Olivos, Ciudad Constitución, Baja California Sur, México');if(config.maps)$('map-note').hidden=true;
 function count(){let n=Math.max(0,Math.floor((new Date(config.date)-Date.now())/1000));const values=[Math.floor(n/86400),Math.floor(n/3600)%24,Math.floor(n/60)%60,n%60];['days','hours','minutes','seconds'].forEach((key,i)=>$(key).textContent=String(values[i]).padStart(2,'0'));if(n===0)$('date-status').textContent='¡Llegó nuestro gran día!'}count();setInterval(count,1000);
 const audio=$('audio');if(config.song)audio.src=config.song;
-function musicUI(){const playing=!audio.paused;$('song').innerHTML=`<span class="play-icon">${playing?'Ⅱ':'▷'}</span> ${playing?'Pausa nuestra canción':'Reproduce nuestra canción'}`;$('floating-music').textContent=playing?'Ⅱ':'▷';$('floating-music').setAttribute('aria-label',playing?'Pausar música':'Reproducir música');}
-function showSpotify(){
- const box=$('spotify-player');
- if(!box.querySelector('iframe')){
-  const frame=document.createElement('iframe');
-  frame.src='https://open.spotify.com/embed/track/'+encodeURIComponent(config.spotifyTrack)+'?utm_source=generator';
-  frame.title='Spotify: '+(config.songTitle||'Nuestra canción');frame.width='100%';frame.height='152';
-  frame.allow='autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
-  frame.allowFullscreen=true;
-  const link=document.createElement('a');link.href='https://open.spotify.com/track/'+encodeURIComponent(config.spotifyTrack);
-  link.target='_blank';link.rel='noopener';link.textContent='Escuchar en Spotify';box.append(frame,link);
- }
- box.hidden=false;$('music-status').textContent=config.songTitle||'Nuestra canción';
- $('song').innerHTML='<span class="play-icon">♫</span> Nuestra canción';
- $('floating-music').hidden=false;$('floating-music').textContent='♫';$('floating-music').setAttribute('aria-label','Ver el reproductor de nuestra canción');
- box.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+const progress=$('music-progress');
+const formatTime=t=>{t=Number.isFinite(t)?Math.max(0,Math.floor(t)):0;return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');};
+function musicUI(){
+ const playing=!audio.paused;
+ $('song-icon').textContent=playing?'Ⅱ':'▷';
+ $('song').setAttribute('aria-label',playing?'Pausar nuestra canción':'Reproducir nuestra canción');
+ $('song').setAttribute('aria-pressed',String(playing));
+ $('floating-music').textContent=playing?'Ⅱ':'▷';
+ $('floating-music').setAttribute('aria-label',playing?'Pausar música':'Reproducir música');
+ $('floating-music').setAttribute('aria-pressed',String(playing));
+ $('song-label').textContent=playing?'Nuestra canción, contigo':'Dale play y acompáñanos';
+ $('music-start').classList.toggle('is-playing',playing);
 }
-async function toggle(){if(!config.song){if(config.spotifyTrack){showSpotify();return}$('music-status').textContent='Nuestra canción estará disponible próximamente.';return}try{if(audio.paused)await audio.play();else audio.pause();$('music-status').textContent='';$('floating-music').hidden=false}catch(e){$('music-status').textContent='No se pudo reproducir la canción. Intenta de nuevo.'}}
-audio.addEventListener('play',musicUI);audio.addEventListener('pause',musicUI);audio.addEventListener('error',()=>{$('music-status').textContent='No se pudo cargar la canción.';});$('song').onclick=toggle;$('floating-music').onclick=toggle;
+function updateProgress(){
+ $('music-current').textContent=formatTime(audio.currentTime);
+ if(Number.isFinite(audio.duration)&&audio.duration>0){
+  progress.max=audio.duration;progress.disabled=false;$('music-duration').textContent=formatTime(audio.duration);
+  progress.value=audio.currentTime;progress.style.setProperty('--progress',(100*audio.currentTime/audio.duration)+'%');
+ }
+ progress.setAttribute('aria-valuetext',formatTime(audio.currentTime)+' de '+formatTime(audio.duration));
+}
+progress.addEventListener('input',()=>{if(Number.isFinite(audio.duration))audio.currentTime=Number(progress.value);updateProgress();});
+async function toggle(){
+ if(!config.song){$('music-status').textContent='Nuestra canción estará disponible próximamente.';return;}
+ try{if(audio.paused)await audio.play();else audio.pause();$('music-status').textContent='';$('floating-music').hidden=false;}
+ catch(e){$('music-status').textContent='No se pudo reproducir la canción. Toca play para intentar de nuevo.';}
+}
+['play','pause','ended'].forEach(event=>audio.addEventListener(event,musicUI));
+['loadedmetadata','durationchange','timeupdate'].forEach(event=>audio.addEventListener(event,updateProgress));
+audio.addEventListener('error',()=>{$('music-status').textContent='No se pudo cargar la canción. Intenta de nuevo.';});
+$('song').onclick=toggle;$('floating-music').onclick=toggle;
 function options(){const yes=document.querySelector('[name=attendance]:checked').value==='yes';$('people').replaceChildren();for(let n=yes?1:0;n<=(yes?(guest?.passes||1):0);n++){const op=document.createElement('option');op.value=n;op.textContent=n+' '+(n===1?'persona':'personas');$('people').append(op)}$('people').disabled=!yes;}
 function setGuest(g){guest=g;$('guest-name').textContent=g.name;$('name').value=g.name;$('pass-count').textContent='Pase para '+g.passes+' '+(g.passes===1?'persona':'personas');options();$('submit').disabled=false;}
 document.querySelectorAll('[name=attendance]').forEach(el=>el.onchange=options);options();
