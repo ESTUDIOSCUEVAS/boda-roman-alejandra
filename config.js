@@ -4,5 +4,5 @@ window.WEDDING = {
   song: 'assets/cancion.mp3', // Canción proporcionada, optimizada desde WAV.
   songTitle: 'Que Te Quiero · Rabito',
   maps: 'https://maps.app.goo.gl/j2uV98QWroBPUu988', // Ubicación compartida por los novios.
-  endpoint: '' // URL /exec de la implementación de Google Apps Script.
+  endpoint: 'https://script.google.com/macros/s/AKfycbzC48Q463vLuqc8xKSJ_mjqZ_o6oK3ViASofHjDaI97GrMXz0t6KF8xHlps6-pBPOE7cg/exec'
 };
