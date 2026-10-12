@@ -13,7 +13,7 @@ $('confirmation').hidden=true;$('show-rsvp').hidden=false;
 $('show-rsvp').addEventListener('click',()=>{
  $('confirmation').hidden=false;$('show-rsvp').setAttribute('aria-expanded','true');
  $('show-rsvp').textContent='Formulario de confirmación';
- $('confirmation').scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});$('name').focus({preventScroll:true});
+ $('confirmation').scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});document.querySelector('[name=attendance]:checked').focus({preventScroll:true});
 });
 
 const params=new URLSearchParams(location.search), id=params.get('id')||'';
@@ -94,12 +94,54 @@ async function toggle(){
 audio.addEventListener('error',()=>{$('music-status').textContent='No se pudo cargar la canción. Intenta de nuevo.';});
 $('song').onclick=toggle;$('floating-music').onclick=toggle;
 function options(){const yes=document.querySelector('[name=attendance]:checked').value==='yes';$('people').replaceChildren();for(let n=yes?1:0;n<=(yes?(guest?.passes||1):0);n++){const op=document.createElement('option');op.value=n;op.textContent=n+' '+(n===1?'persona':'personas');$('people').append(op)}$('people').disabled=!yes;}
-function setGuest(g){guest=g;$('guest-name').textContent=g.name;$('name').value=g.name;$('pass-count').textContent='Pase para '+g.passes+' '+(g.passes===1?'persona':'personas');options();$('submit').disabled=false;}
+function setGuest(g){guest=g;$('guest-name').textContent=g.name;$('rsvp-guest').textContent=g.name;$('pass-count').textContent='Pase para '+g.passes+' '+(g.passes===1?'persona':'personas');options();$('submit').disabled=false;}
 document.querySelectorAll('[name=attendance]').forEach(el=>el.onchange=options);options();
 async function request(url,init){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),20000);try{const res=await fetch(url,{...init,signal:controller.signal});if(!res.ok)throw Error('No pudimos conectar. Intenta de nuevo.');const data=await res.json();if(!data.ok)throw Error(data.message||'No pudimos procesar la invitación.');return data}finally{clearTimeout(timer)}}
 async function loadGuest(){if(demo){const raw=Number(params.get('pases')||2), passes=Number.isInteger(raw)&&raw>=1&&raw<=20?raw:2;setGuest({name:(params.get('invitado')||'Invitado de ejemplo').slice(0,120),passes});$('rsvp-info').textContent='Vista de prueba. Las respuestas todavía no se guardan.';$('submit').textContent='Probar confirmación';return}
 $('submit').disabled=true;if(!id){$('rsvp-info').textContent='Para confirmar, abre el enlace personal que te compartieron los novios.';return}try{$('rsvp-info').textContent='Consultando tu invitación…';const data=await request(config.endpoint+'?'+new URLSearchParams({action:'guest',id}));if(!Number.isInteger(data.guest.passes)||data.guest.passes<1||data.guest.passes>20)throw Error('El pase no es válido.');setGuest(data.guest);$('rsvp-info').textContent=''}catch(e){$('rsvp-info').textContent=e.name==='AbortError'?'La consulta tardó demasiado. Recarga para intentar de nuevo.':e.message}}
 loadGuest();
-$('confirmation').addEventListener('submit',async e=>{e.preventDefault();const attendance=document.querySelector('[name=attendance]:checked').value;const name=$('name').value.trim();const people=attendance==='no'?0:Number($('people').value);if(!name){$('form-status').textContent='Escribe tu nombre.';return}if(!guest||!Number.isInteger(people)||people<0||people>guest.passes||(attendance==='yes'&&people<1)){$('form-status').textContent='Revisa el número de personas.';return}if(demo){$('form-status').textContent='Prueba completada. No se ha enviado ni guardado ninguna respuesta.';return}$('submit').disabled=true;$('form-status').textContent='Enviando…';try{await request(config.endpoint,{method:'POST',body:new URLSearchParams({id,name,attendance,people:String(people),wishes:$('wishes').value.trim()})});$('form-status').textContent=attendance==='yes'?'¡Gracias por confirmar! Nos encantará compartir este día contigo.':'Gracias por avisarnos y por ser parte de nuestra historia.';$('submit').textContent='Actualizar confirmación'}catch(err){$('form-status').textContent='No pudimos verificar el guardado. Puedes intentar de nuevo; tu respuesta se actualizará sin duplicarse.'}finally{$('submit').disabled=false}});
+$('confirmation').addEventListener('submit', async e => {
+ e.preventDefault();
+ const attendance = document.querySelector('[name=attendance]:checked').value;
+ const people = attendance === 'no' ? 0 : Number($('people').value);
+ const name = String(guest?.name || '').trim();
+ const whatsapp = $('whatsapp-confirmation');
+ whatsapp.hidden = true;
+ if (!guest || !name || !Number.isInteger(people) || people < 0 || people > guest.passes || (attendance === 'yes' && people < 1)) {
+  $('form-status').textContent = 'Revisa tu invitación y el número de personas.';
+  return;
+ }
+ if (demo) {
+  $('form-status').textContent = 'Prueba completada. No se guardó una respuesta ni se abrió WhatsApp.';
+  return;
+ }
+ $('submit').disabled = true;
+ $('form-status').textContent = 'Guardando tu respuesta…';
+ try {
+  await request(config.endpoint, {
+   method: 'POST',
+   body: new URLSearchParams({id, name, attendance, people: String(people), wishes: $('wishes').value.trim()})
+  });
+ } catch (err) {
+  $('form-status').textContent = 'No pudimos verificar el guardado. Intenta de nuevo; tu respuesta se actualizará sin duplicarse.';
+  $('submit').disabled = false;
+  return;
+ }
+ // WhatsApp se ofrece únicamente después del guardado confirmado en Sheets.
+ const message = [
+  'Confirmación — Boda de Román y Alejandra',
+  'Invitación: ' + name,
+  'Asistencia: ' + (attendance === 'yes' ? 'Sí' : 'No'),
+  'Personas confirmadas: ' + people,
+  attendance === 'yes' ? '¡Nos vemos el 13 de noviembre!' : 'Gracias por invitarnos.'
+ ].join('\n');
+ const url = 'https://wa.me/526131113639?text=' + encodeURIComponent(message);
+ whatsapp.href = url;
+ whatsapp.hidden = false;
+ $('form-status').textContent = 'Tu respuesta quedó registrada. Envía el mensaje en WhatsApp; si no se abre, toca el botón de abajo.';
+ $('submit').textContent = 'Actualizar y abrir WhatsApp';
+ $('submit').disabled = false;
+ try { window.location.assign(url); } catch (err) { /* El enlace permanece disponible. */ }
+});
 if('IntersectionObserver' in window){document.documentElement.classList.add('motion');const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');observer.unobserve(entry.target)}}),{threshold:.08});document.querySelectorAll('.reveal').forEach(el=>observer.observe(el))}
 })();

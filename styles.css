@@ -171,3 +171,9 @@ footer { padding-top: 42px; padding-bottom: 48px; }
   .parents-grid p { font-size: 24px; }
   .date-editorial .date-content { padding-bottom: 32px; }
 }
+
+.rsvp-for { margin: 0 0 24px; text-align: center; }
+.rsvp-for .eyebrow { display: block; color: var(--olive); }
+.rsvp-for strong { display: block; margin-top: 8px; font-size: 24px; font-weight: 400; line-height: 1.3; overflow-wrap: anywhere; }
+.rsvp-next-step { margin-top: 24px; }
+#whatsapp-confirmation { width: 100%; text-align: center; margin-top: 12px; }
