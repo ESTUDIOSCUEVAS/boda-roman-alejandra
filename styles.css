@@ -107,3 +107,67 @@ footer { padding-top: 42px; padding-bottom: 48px; }
   .portrait-wrap, .sunlight-wrap { padding-top: 38px; padding-bottom: 24px; }
   .dress.paper, .pass.paper { padding-top: 50px; }
 }
+
+/* Ajustes a partir de las capturas: jerarquía, saltos y ornamentos. */
+.date-editorial .date-content h2 {
+  font-size: clamp(30px, 8vw, 42px);
+  line-height: 1.25;
+  letter-spacing: 0.015em;
+  white-space: nowrap;
+  margin: 14px 0;
+}
+.countdown {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 360px;
+  margin: 24px auto 0;
+}
+.countdown strong {
+  font-size: clamp(26px, 7vw, 32px);
+  font-weight: 400;
+  line-height: 1.3;
+}
+.countdown span { font-size: 14px; }
+.date-editorial .date-content > p { font-size: 18px; }
+.date-editorial .date-content { padding-bottom: 28px; }
+
+.parents h2 {
+  font-family: Georgia, serif;
+  font-size: clamp(21px, 5.6vw, 26px);
+  line-height: 1.45;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  max-width: 580px;
+  margin: 0 auto;
+}
+.parents-grid { margin-top: 26px; gap: 25px; }
+.parents-grid .eyebrow { font-size: 12px; letter-spacing: 0.14em; }
+.parents-grid p { font-size: 22px; line-height: 1.55; margin-top: 9px; }
+.parents::after { margin-top: 22px; }
+
+/* En flujo normal: las ramas tienen su propio espacio y no cruzan el texto. */
+.botanical .corner-branch,
+.intro.botanical .corner-branch {
+  position: static;
+  display: block;
+  width: 65px;
+  height: 74px;
+  margin: 0 auto 16px;
+  transform: rotate(24deg);
+  opacity: 0.45;
+  pointer-events: none;
+}
+.parents > .small-branch { display: none; }
+.intro { padding-top: 30px !important; padding-bottom: 30px; }
+.parents.paper { padding-top: 24px; padding-bottom: 36px; }
+.dress.paper { padding-top: 26px; }
+.editorial-monogram { margin-top: 20px; margin-bottom: 20px; }
+.intro blockquote { font-size: 23px; line-height: 1.5; }
+@media (min-width: 700px) {
+  .intro { padding-top: 40px !important; padding-bottom: 40px; }
+  .parents.paper { padding-top: 30px; padding-bottom: 44px; }
+  .parents-grid p { font-size: 24px; }
+  .date-editorial .date-content { padding-bottom: 32px; }
+}
