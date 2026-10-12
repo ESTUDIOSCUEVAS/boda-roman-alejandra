@@ -19,8 +19,38 @@ $('show-rsvp').addEventListener('click',()=>{
 const params=new URLSearchParams(location.search), id=params.get('id')||'';
 const demo=!config.endpoint;
 let guest=null;
-const activities=[['05:00 PM','Llegada de los invitados','◇'],['05:30 PM','Llegada de los novios','♡'],['05:40 PM','Ceremonia','○'],['06:40 PM','Brindis y felicitaciones','◇'],['06:55 PM','Baile de los novios','♡'],['07:40 PM','Cena','◇'],['08:50 PM','Postres','○'],['09:10 PM','Fotografías','◇'],['09:40 PM','Lanzamiento de ramo y juegos','♡'],['10:30 PM','Fin del evento','○']];
-activities.forEach(([time,activity,icon])=>{const li=document.createElement('li');const t=document.createElement('time');t.textContent=time;const dot=document.createElement('span');dot.className='dot';dot.setAttribute('aria-hidden','true');dot.textContent=icon;const text=document.createElement('span');text.textContent=activity;li.append(t,dot,text);$('timeline').append(li)});
+const itineraryIcons = {
+  guests: '<circle cx="8" cy="7" r="3"/><circle cx="18" cy="8" r="2.5"/><path d="M2 21v-3a6 6 0 0 1 12 0v3M15 14a5 5 0 0 1 7 4v3"/>',
+  couple: '<path d="M12 21S2 15 2 8a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 7-10 13-10 13Z"/>',
+  rings: '<circle cx="8" cy="15" r="6"/><circle cx="16" cy="15" r="6"/><path d="m5 5 3-3 3 3-3 4ZM13 5l3-3 3 3-3 4Z"/>',
+  toast: '<path d="m3 3 7 2-2 7a3.7 3.7 0 0 1-7-2ZM14 5l7-2 2 7a3.7 3.7 0 0 1-7 2ZM5 14l-2 7M1 20l5 2M19 14l2 7M18 22l5-2M11 1l1 3M15 1l-1 3"/>',
+  dance: '<path d="M9 17V5l11-3v13M9 8l11-3"/><ellipse cx="6" cy="18" rx="3" ry="2.5"/><ellipse cx="17" cy="16" rx="3" ry="2.5"/>',
+  dinner: '<path d="M5 2v7M2 2v5a3 3 0 0 0 6 0V2M5 10v12M19 2c-4 4-4 8 0 10h2V2ZM21 12v10"/>',
+  dessert: '<path d="M3 11h18v11H3ZM3 15q3 4 6 0 3 4 6 0 3 4 6 0M6 11V7h12v4M12 7V4"/><path d="M12 4c-3-1-1-3 0-4 1 1 3 3 0 4Z"/>',
+  camera: '<path d="M2 7h5l2-3h6l2 3h5v14H2Z"/><circle cx="12" cy="14" r="4"/><path d="M18 10h1"/>',
+  bouquet: '<path d="m8 14 2 8h4l2-8M6 11c-3-4 0-7 4-4-1-5 4-7 5-2 4-3 7 1 3 4 5 1 5 6 0 6M8 14l8 2M10 18l4 1"/><circle cx="12" cy="11" r="3"/>',
+  end: '<path d="M19 3a9 9 0 1 0 2 15A10 10 0 0 1 19 3ZM5 3v4M3 5h4"/>'
+};
+const activities = [
+ ['05:00 PM','Llegada de los invitados','guests'],
+ ['05:30 PM','Llegada de los novios','couple'],
+ ['05:40 PM','Ceremonia','rings'],
+ ['06:40 PM','Brindis y felicitaciones','toast'],
+ ['06:55 PM','Baile de los novios','dance'],
+ ['07:40 PM','Cena','dinner'],
+ ['08:50 PM','Postres','dessert'],
+ ['09:10 PM','Fotografías','camera'],
+ ['09:40 PM','Lanzamiento de ramo y juegos','bouquet'],
+ ['10:30 PM','Fin del evento','end']
+];
+activities.forEach(([time, activity, icon]) => {
+ const li=document.createElement('li');
+ const t=document.createElement('time');t.textContent=time;
+ const dot=document.createElement('span');dot.className='dot';dot.setAttribute('aria-hidden','true');
+ dot.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">'+itineraryIcons[icon]+'</svg>';
+ const text=document.createElement('span');text.textContent=activity;
+ li.append(t,dot,text);$('timeline').append(li);
+});
 const photoDescriptions=['Román y Alejandra abrazados en el jardín','Román y Alejandra tomados de la mano','Román y Alejandra juntos bajo el mirador','Román y Alejandra al atardecer'];
 document.querySelectorAll('[data-photo]').forEach(el=>{
  const index=Number(el.dataset.photo), src=config.photos[index];if(!src)return;
