@@ -105,6 +105,7 @@ $('confirmation').addEventListener('submit', async e => {
  const attendance = document.querySelector('[name=attendance]:checked').value;
  const people = attendance === 'no' ? 0 : Number($('people').value);
  const name = String(guest?.name || '').trim();
+ const wishes = $('wishes').value.trim();
  const whatsapp = $('whatsapp-confirmation');
  whatsapp.hidden = true;
  if (!guest || !name || !Number.isInteger(people) || people < 0 || people > guest.passes || (attendance === 'yes' && people < 1)) {
@@ -120,7 +121,7 @@ $('confirmation').addEventListener('submit', async e => {
  try {
   await request(config.endpoint, {
    method: 'POST',
-   body: new URLSearchParams({id, name, attendance, people: String(people), wishes: $('wishes').value.trim()})
+   body: new URLSearchParams({id, name, attendance, people: String(people), wishes})
   });
  } catch (err) {
   $('form-status').textContent = 'No pudimos verificar el guardado. Intenta de nuevo; tu respuesta se actualizará sin duplicarse.';
@@ -133,6 +134,7 @@ $('confirmation').addEventListener('submit', async e => {
   'Invitación: ' + name,
   'Asistencia: ' + (attendance === 'yes' ? 'Sí' : 'No'),
   'Personas confirmadas: ' + people,
+  ...(wishes ? ['Deseos para los novios: ' + wishes] : []),
   attendance === 'yes' ? '¡Nos vemos el 13 de noviembre!' : 'Gracias por invitarnos.'
  ].join('\n');
  const url = 'https://wa.me/526131113639?text=' + encodeURIComponent(message);
